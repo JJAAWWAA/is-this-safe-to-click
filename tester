@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is This Safe to Click?</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151b3d;
+            --accent-safe: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Animated background gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-10%, 10%) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input[type="text"]::placeholder {
+            color: #475569;
+        }
+
+        .check-button {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .check-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .check-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .check-button:hover::before {
+            left: 100%;
+        }
+
+        .check-button:active {
+            transform: translateY(0);
+        }
+
+        .check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-badge.safe {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-safe);
+            border: 2px solid var(--accent-safe);
+        }
+
+        .result-badge.risky {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-warning);
+            border: 2px solid var(--accent-warning);
+        }
+
+        .result-badge.dangerous {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-danger);
+            border: 2px solid var(--accent-danger);
+        }
+
+        .result-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .explanation {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+
+        .explanation.safe { border-left-color: var(--accent-safe); }
+        .explanation.risky { border-left-color: var(--accent-warning); }
+        .explanation.dangerous { border-left-color: var(--accent-danger); }
+
+        .explanation p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .checks-list {
+            list-style: none;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+
+        .check-item:hover {
+            transform: translateX(5px);
+        }
+
+        .check-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+        }
+
+        .check-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .check-value {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-warning);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .warning-box p {
+            color: var(--accent-warning);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .main-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Is This Safe to Click?</h1>
+            <p class="subtitle">Check if a link is safe before you click it. Protect yourself from scams and phishing.</p>
+        </header>
+
+        <div class="main-card">
+            <div class="input-group">
+                <label for="url-input">Paste the link here</label>
+                <input 
+                    type="text" 
+                    id="url-input" 
+                    placeholder="https://example.com/suspicious-link"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button class="check-button" id="check-btn" onclick="checkLink()">
+                <span id="btn-text">Check This Link</span>
+                <span id="btn-loading" style="display: none;" class="loading"></span>
+            </button>
+
+            <div id="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stay safe online. Always verify before you click.</p>
+    </div>
+
+    <script>
+        async function checkLink() {
+            const input = document.getElementById('url-input');
+            const url = input.value.trim();
+            const resultDiv = document.getElementById('result');
+            const checkBtn = document.getElementById('check-btn');
+            const btnText = document.getElementById('btn-text');
+            const btnLoading = document.getElementById('btn-loading');
+
+            if (!url) {
+                alert('Please enter a link to check');
+                return;
+            }
+
+            // Basic URL validation
+            if (!url.startsWith('http://') && !url.startsWith('https://') && !url.includes('.')) {
+                alert('Please enter a valid URL (e.g., https://example.com)');
+                return;
+            }
+
+            // Show loading state
+            checkBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+            resultDiv.style.display = 'none';
+
+            // Simulate checking (in a real app, this would call an API)
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const analysis = analyzeUrl(url);
+
+            // Hide loading state
+            checkBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+
+            // Display results
+            displayResults(analysis);
+        }
+
+        function analyzeUrl(url) {
+            let score = 100; // Start at 100 and deduct points
+            const checks = [];
+            const warnings = [];
+
+            try {
+                const urlObj = new URL(url.startsWith('http') ? url : 'https://' + url);
+                const domain = urlObj.hostname;
+                const urlLower = url.toLowerCase();
+
+                // Check 1: HTTPS
+                const hasHttps = urlObj.protocol === 'https:';
+                checks.push({
+                    icon: hasHttps ? '✓' : '✗',
+                    label: 'Secure Connection (HTTPS)',
+                    value: hasHttps ? 'Yes' : 'No',
+                    pass: hasHttps
+                });
+                if (!hasHttps) {
+                    score -= 30;
+                    warnings.push('This link does not use a secure connection (no HTTPS).');
+                }
+
+                // Check 2: Domain analysis (IP address, typosquatting, misspellings)
+                const isIpAddress = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(domain);
+                
+                // Common legitimate domains that should be trusted
+                const trustedDomains = [
+                    'google.com', 'youtube.com', 'facebook.com', 'amazon.com', 'wikipedia.org',
+                    'twitter.com', 'instagram.com', 'linkedin.com', 'reddit.com', 'netflix.com',
+                    'microsoft.com', 'apple.com', 'github.com', 'stackoverflow.com', 'zoom.us',
+                    'dropbox.com', 'spotify.com', 'twitch.tv', 'ebay.com', 'paypal.com',
+                    'chase.com', 'wellsfargo.com', 'bankofamerica.com', 'citi.com',
+                    'gmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'
+                ];
+                
+                // Get the main domain (last two parts)
+                const domainParts = domain.split('.');
+                const mainDomain = domainParts.slice(-2).join('.');
+                const isTrustedDomain = trustedDomains.includes(mainDomain);
+                
+                // Check for typosquatting (similar to trusted domains but with small differences)
+                let possibleTyposquatting = false;
+                if (!isTrustedDomain && domainParts.length >= 2) {
+                    for (const trusted of trustedDomains) {
+                        const trustedName = trusted.split('.')[0];
+                        const domainName = domainParts[domainParts.length - 2];
+                        
+                        // Skip if domainName is undefined or too short
+                        if (!domainName || domainName.length < 2) continue;
+                        
+                        // Check for common typosquatting tricks
+                        if (domainName.includes(trustedName) && domainName !== trustedName) {
+                            possibleTyposquatting = true;
+                            break;
+                        }
+                        
+                        // Check for character substitution (l->1, o->0, etc.)
+                        const normalized1 = trustedName.replace(/[l1i]/g, 'x').replace(/[o0]/g, 'y');
+                        const normalized2 = domainName.replace(/[l1i]/g, 'x').replace(/[o0]/g, 'y');
+                        if (normalized1 === normalized2 && trustedName !== domainName) {
+                            possibleTyposquatting = true;
+                            break;
+                        }
+                        
+                        // Check for extra/missing characters
+                        if (Math.abs(trustedName.length - domainName.length) <= 2) {
+                            let differences = 0;
+                            for (let i = 0; i < Math.min(trustedName.length, domainName.length); i++) {
+                                if (trustedName[i] !== domainName[i]) differences++;
+                            }
+                            if (differences <= 2 && differences > 0) {
+                                possibleTyposquatting = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                let domainStatus = 'Normal domain';
+                let domainIssue = false;
+                
+                if (isIpAddress) {
+                    domainStatus = 'IP Address (Very Suspicious)';
+                    domainIssue = true;
+                    score -= 40;
+                    warnings.push('The link uses an IP address instead of a normal website name. This is very unusual and often used in scams.');
+                } else if (isTrustedDomain) {
+                    domainStatus = 'Trusted, well-known site';
+                } else if (possibleTyposquatting) {
+                    domainStatus = 'Looks like a fake version of a real site';
+                    domainIssue = true;
+                    score -= 35;
+                    warnings.push('This domain looks very similar to a popular website but isn\'t the real one. This is a common scam trick called "typosquatting".');
+                }
+                
+                checks.push({
+                    icon: domainIssue ? '✗' : (isTrustedDomain ? '✓' : '○'),
+                    label: 'Domain Name',
+                    value: domainStatus,
+                    pass: !domainIssue
+                });
+
+                // Check 3: Suspicious patterns and brand impersonation
+                const suspiciousPatterns = [
+                    'login', 'signin', 'account', 'verify', 'secure', 'update', 'confirm',
+                    'suspended', 'locked', 'unusual', 'activity', 'urgent', 'alert'
+                ];
+                
+                const commonBrands = [
+                    'paypal', 'amazon', 'ebay', 'microsoft', 'apple', 'google', 
+                    'facebook', 'netflix', 'bank', 'chase', 'wellsfargo', 'citi'
+                ];
+
+                // Check for suspicious words
+                const hasSuspiciousWords = suspiciousPatterns.some(pattern => urlLower.includes(pattern));
+                
+                // Check for brand impersonation (brand name in URL but not in main domain)
+                const hasBrandImpersonation = commonBrands.some(brand => 
+                    urlLower.includes(brand) && !mainDomain.includes(brand)
+                );
+
+                const suspiciousContent = hasSuspiciousWords || hasBrandImpersonation;
+
+                checks.push({
+                    icon: suspiciousContent ? '✗' : '✓',
+                    label: 'Suspicious Content',
+                    value: suspiciousContent ? 'Warning signs detected' : 'No obvious red flags',
+                    pass: !suspiciousContent
+                });
+                
+                if (hasSuspiciousWords) {
+                    score -= 25;
+                    warnings.push('The link contains words like "login", "verify", or "account" that scammers often use.');
+                }
+                
+                if (hasBrandImpersonation) {
+                    score -= 30;
+                    warnings.push('This link mentions a popular company name but isn\'t actually from that company. This is a common phishing trick.');
+                }
+
+                // Check 4: URL complexity and obfuscation
+                const tooLong = url.length > 150;
+                const tooManySubdomains = domain.split('.').length > 4;
+                const hasWeirdCharacters = /[^\w\d\-\.\/\?\=\&\:\%]/.test(url);
+                const tooManyNumbers = (domain.match(/\d/g) || []).length > 5;
+                
+                const complexUrl = tooLong || tooManySubdomains || hasWeirdCharacters || tooManyNumbers;
+
+                checks.push({
+                    icon: complexUrl ? '⚠' : '✓',
+                    label: 'URL Structure',
+                    value: complexUrl ? 'Overly complex or suspicious' : 'Normal',
+                    pass: !complexUrl
+                });
+                
+                if (complexUrl) {
+                    score -= 20;
+                    if (tooLong) warnings.push('The link is extremely long, which can be used to hide malicious content.');
+                    if (tooManySubdomains) warnings.push('The link has many subdomains, which is unusual.');
+                    if (tooManyNumbers) warnings.push('The domain contains many numbers, which is uncommon for legitimate sites.');
+                }
+
+                // Check 5: Free hosting or suspicious TLDs
+                const suspiciousTLDs = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club', '.work'];
+                const freeHosts = ['000webhostapp', 'netlify.app', 'github.io', 'blogspot', 'wordpress.com', 'wixsite', 'weebly'];
+                
+                const hasSuspiciousTLD = suspiciousTLDs.some(tld => domain.endsWith(tld));
+                const isFreeHost = freeHosts.some(host => domain.includes(host));
+                
+                if (hasSuspiciousTLD || (isFreeHost && suspiciousContent)) {
+                    checks.push({
+                        icon: '⚠',
+                        label: 'Domain Reputation',
+                        value: 'Uses free or suspicious hosting',
+                        pass: false
+                    });
+                    score -= 15;
+                    warnings.push('This link uses free hosting or a domain extension commonly used for scams.');
+                }
+
+                // Determine safety level
+                let level, explanation, icon;
+                if (score >= 80) {
+                    level = 'safe';
+                    icon = '🛡️';
+                    explanation = 'This link appears relatively safe. It doesn\'t show obvious red flags. However, always verify you trust the source before clicking any link.';
+                } else if (score >= 50) {
+                    level = 'risky';
+                    icon = '⚠️';
+                    explanation = 'This link has warning signs that make it suspicious. Be very careful! Only click if you absolutely trust who sent it and were expecting this link. When in doubt, don\'t click.';
+                } else {
+                    level = 'dangerous';
+                    icon = '🚨';
+                    explanation = 'DANGER! This link shows multiple red flags that are common in scams and phishing attacks. We strongly recommend NOT clicking this link. If you got this in an email or text, it\'s very likely fake. Delete it.';
+                }
+
+                return { level, explanation, icon, checks, warnings, score };
+
+            } catch (e) {
+                return {
+                    level: 'dangerous',
+                    explanation: 'This doesn\'t look like a valid web address. It might be typed incorrectly, or someone is trying to trick you with a fake link. Do not click this.',
+                    icon: '🚨',
+                    checks: [{
+                        icon: '✗',
+                        label: 'Valid URL',
+                        value: 'Not a valid link',
+                        pass: false
+                    }],
+                    warnings: ['This is not a properly formatted web link.'],
+                    score: 0
+                };
+            }
+        }
+
+        function displayResults(analysis) {
+            const resultDiv = document.getElementById('result');
+            
+            const checksHtml = analysis.checks.map(check => `
+                <div class="check-item">
+                    <span class="check-icon">${check.icon}</span>
+                    <span class="check-label">${check.label}</span>
+                    <span class="check-value">${check.value}</span>
+                </div>
+            `).join('');
+
+            const warningsHtml = analysis.warnings.length > 0 ? `
+                <div class="warning-box">
+                    <p><strong>⚠️ Warning Signs:</strong></p>
+                    ${analysis.warnings.map(w => `<p>• ${w}</p>`).join('')}
+                </div>
+            ` : '';
+
+            resultDiv.innerHTML = `
+                <div class="result-container">
+                    <div class="result-badge ${analysis.level}">
+                        <span class="result-icon">${analysis.icon}</span>
+                        <span>${analysis.level.toUpperCase()}</span>
+                    </div>
+                    
+                    <div class="explanation ${analysis.level}">
+                        <p>${analysis.explanation}</p>
+                    </div>
+
+                    <ul class="checks-list">
+                        ${checksHtml}
+                    </ul>
+
+                    ${warningsHtml}
+                </div>
+            `;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('url-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkLink();
+            }
+        });
+    </script>
+</body>
+</html>
